@@ -130,4 +130,10 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Custom font for handwriting-style text */
+  .font-handwriting {
+    font-family: 'Brush Script MT', 'Lucida Handwriting', cursive, system-ui;
+    font-style: italic;
+  }
 }

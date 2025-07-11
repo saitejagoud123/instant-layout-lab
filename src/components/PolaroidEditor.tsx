@@ -1,12 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import Cropper from 'react-easy-crop';
-import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Type } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 interface PolaroidEditorProps {
   imageSrc: string;
@@ -27,6 +28,7 @@ export const PolaroidEditor = ({ imageSrc, onCropChange }: PolaroidEditorProps) 
   const [selectedSize, setSelectedSize] = useState('4x6');
   const [customWidth, setCustomWidth] = useState('');
   const [customHeight, setCustomHeight] = useState('');
+  const [polaroidText, setPolaroidText] = useState('');
 
   const onCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -37,9 +39,10 @@ export const PolaroidEditor = ({ imageSrc, onCropChange }: PolaroidEditorProps) 
       croppedAreaPixels,
       dimensions: selectedSize === 'custom' 
         ? { width: parseFloat(customWidth) || 4, height: parseFloat(customHeight) || 6 }
-        : PRESET_SIZES[selectedSize as keyof typeof PRESET_SIZES]
+        : PRESET_SIZES[selectedSize as keyof typeof PRESET_SIZES],
+      text: polaroidText
     });
-  }, [crop, zoom, rotation, onCropChange, selectedSize, customWidth, customHeight]);
+  }, [crop, zoom, rotation, onCropChange, selectedSize, customWidth, customHeight, polaroidText]);
 
   const currentDimensions = selectedSize === 'custom' 
     ? { width: parseFloat(customWidth) || 4, height: parseFloat(customHeight) || 6 }
@@ -140,9 +143,15 @@ export const PolaroidEditor = ({ imageSrc, onCropChange }: PolaroidEditorProps) 
           
           {/* White Space Area (30% of height) */}
           <div 
-            className="bg-polaroid-frame"
+            className="bg-polaroid-frame flex items-center justify-center p-4"
             style={{ height: '30%' }}
-          />
+          >
+            {polaroidText && (
+              <p className="text-center text-sm font-handwriting text-gray-700 leading-relaxed">
+                {polaroidText}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
 
@@ -197,6 +206,25 @@ export const PolaroidEditor = ({ imageSrc, onCropChange }: PolaroidEditorProps) 
             <span className="text-sm w-12 text-right">{rotation}°</span>
           </div>
         </div>
+      </Card>
+
+      {/* Text Input */}
+      <Card className="p-4 space-y-4 bg-gradient-warm">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Type className="w-4 h-4" />
+          Optional Text
+        </Label>
+        <Textarea
+          placeholder="Add optional text to appear at the bottom of your Polaroid..."
+          value={polaroidText}
+          onChange={(e) => setPolaroidText(e.target.value)}
+          className="resize-none"
+          rows={3}
+          maxLength={120}
+        />
+        <p className="text-xs text-muted-foreground">
+          {polaroidText.length}/120 characters
+        </p>
       </Card>
     </div>
   );

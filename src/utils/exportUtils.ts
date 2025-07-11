@@ -14,6 +14,7 @@ export interface CropData {
     width: number;
     height: number;
   };
+  text?: string;
 }
 
 export const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -40,7 +41,7 @@ export const getCroppedImg = async (
 
   // High DPI for print quality (300 DPI)
   const DPI = 300;
-  const { dimensions, croppedAreaPixels } = cropData;
+  const { dimensions, croppedAreaPixels, text } = cropData;
   
   const polaroidWidth = dimensions.width * DPI;
   const polaroidHeight = dimensions.height * DPI;
@@ -77,6 +78,42 @@ export const getCroppedImg = async (
     finalWidth,
     finalHeight
   );
+
+  // Add text if provided
+  if (text && text.trim()) {
+    const fontSize = Math.max(24, polaroidWidth * 0.03); // Responsive font size
+    ctx.font = `${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.fillStyle = '#333333';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Word wrap text
+    const maxWidth = polaroidWidth * 0.8; // 80% of width for padding
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = ctx.measureText(currentLine + ' ' + word).width;
+      if (width < maxWidth) {
+        currentLine += ' ' + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
+
+    // Draw each line
+    const lineHeight = fontSize * 1.2;
+    const totalTextHeight = lines.length * lineHeight;
+    const startY = imageHeight + (whiteSpaceHeight - totalTextHeight) / 2 + fontSize / 2;
+
+    lines.forEach((line, index) => {
+      ctx.fillText(line, polaroidWidth / 2, startY + index * lineHeight);
+    });
+  }
 
   return canvas.toDataURL(`image/${format}`, format === 'jpeg' ? 0.95 : 1);
 };
