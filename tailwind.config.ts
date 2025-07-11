@@ -26,7 +26,8 @@ export default {
 				foreground: 'hsl(var(--foreground))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					foreground: 'hsl(var(--primary-foreground))',
+					glow: 'hsl(var(--primary-glow))'
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
@@ -61,7 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				polaroid: {
+					frame: 'hsl(var(--polaroid-frame))',
+					shadow: 'hsl(var(--polaroid-shadow))'
+				},
+				editor: {
+					bg: 'hsl(var(--editor-bg))',
+					control: 'hsl(var(--editor-control))'
 				}
+			},
+			backgroundImage: {
+				'gradient-warm': 'var(--gradient-warm)',
+				'gradient-vintage': 'var(--gradient-vintage)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
