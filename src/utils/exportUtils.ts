@@ -14,7 +14,6 @@ export interface CropData {
     width: number;
     height: number;
   };
-  text?: string;
 }
 
 export const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -41,12 +40,19 @@ export const getCroppedImg = async (
 
   // High DPI for print quality (300 DPI)
   const DPI = 300;
-  const { dimensions, croppedAreaPixels, text } = cropData;
+  const { dimensions, croppedAreaPixels } = cropData;
   
   const polaroidWidth = dimensions.width * DPI;
   const polaroidHeight = dimensions.height * DPI;
-  const imageHeight = polaroidHeight * 0.7; // 70% for image
-  const whiteSpaceHeight = polaroidHeight * 0.3; // 30% for white space
+  
+  // Calculate border sizes based on proportions
+  const topBorder = polaroidHeight * 0.1; // 10% of height
+  const bottomBorder = polaroidHeight * 0.166; // 16.6% of height
+  const leftRightBorder = polaroidWidth * 0.05; // 5% of width each side
+  
+  // Image area dimensions
+  const imageAreaWidth = polaroidWidth - (leftRightBorder * 2);
+  const imageAreaHeight = polaroidHeight - topBorder - bottomBorder;
 
   canvas.width = polaroidWidth;
   canvas.height = polaroidHeight;
@@ -55,16 +61,18 @@ export const getCroppedImg = async (
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, polaroidWidth, polaroidHeight);
 
-  // Calculate scaling factor for high DPI
-  const scaleX = polaroidWidth / croppedAreaPixels.width;
-  const scaleY = imageHeight / croppedAreaPixels.height;
+  // Calculate scaling factor to fit image in available space while maintaining aspect ratio
+  const scaleX = imageAreaWidth / croppedAreaPixels.width;
+  const scaleY = imageAreaHeight / croppedAreaPixels.height;
   const scale = Math.min(scaleX, scaleY);
 
   // Calculate final image dimensions and position
   const finalWidth = croppedAreaPixels.width * scale;
   const finalHeight = croppedAreaPixels.height * scale;
-  const x = (polaroidWidth - finalWidth) / 2;
-  const y = (imageHeight - finalHeight) / 2;
+  
+  // Center the image horizontally and align to top within the bordered area
+  const x = leftRightBorder + (imageAreaWidth - finalWidth) / 2;
+  const y = topBorder; // Align to top of image area
 
   // Draw the cropped image
   ctx.drawImage(
@@ -78,42 +86,6 @@ export const getCroppedImg = async (
     finalWidth,
     finalHeight
   );
-
-  // Add text if provided
-  if (text && text.trim()) {
-    const fontSize = Math.max(24, polaroidWidth * 0.03); // Responsive font size
-    ctx.font = `${fontSize}px system-ui, -apple-system, sans-serif`;
-    ctx.fillStyle = '#333333';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Word wrap text
-    const maxWidth = polaroidWidth * 0.8; // 80% of width for padding
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = words[0];
-
-    for (let i = 1; i < words.length; i++) {
-      const word = words[i];
-      const width = ctx.measureText(currentLine + ' ' + word).width;
-      if (width < maxWidth) {
-        currentLine += ' ' + word;
-      } else {
-        lines.push(currentLine);
-        currentLine = word;
-      }
-    }
-    lines.push(currentLine);
-
-    // Draw each line
-    const lineHeight = fontSize * 1.2;
-    const totalTextHeight = lines.length * lineHeight;
-    const startY = imageHeight + (whiteSpaceHeight - totalTextHeight) / 2 + fontSize / 2;
-
-    lines.forEach((line, index) => {
-      ctx.fillText(line, polaroidWidth / 2, startY + index * lineHeight);
-    });
-  }
 
   return canvas.toDataURL(`image/${format}`, format === 'jpeg' ? 0.95 : 1);
 };
